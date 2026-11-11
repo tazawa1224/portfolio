@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WORKS | TAZAWA PORTFOLIO</title>
+<link rel="stylesheet" href="./portfolio.css">
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<canvas id="grid" aria-hidden="true"></canvas>
+
+<!-- 作例一覧。works.html?c=web / app / other でカテゴリを絞る（なしで全部）。
+     カードは works.js が作例のリスト（WORKS）から方眼に並べる。方眼と、押すと凹んで出っ張る動きはトップと同じ main-portfolio.js -->
+<main class="board"></main>
+
+<script type="module" src="./works.js"></script>
+<script type="module" src="./main-portfolio.js"></script>
+</body>
+</html>

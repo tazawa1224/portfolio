@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TAZAWA PORTFOLIO</title>
+<link rel="stylesheet" href="./portfolio.css">
+<!-- このページの横長の画面は 18×10 マス（ほかのページは 16×10） -->
+<style>
+@media (min-aspect-ratio: 1/1) and (min-width: 761px) { :root { --cols: 18; } }
+</style>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<canvas id="grid" aria-hidden="true"></canvas>
+
+<!-- 方眼のボード。要素はマスに合わせて置く。
+     --c, --r, --w, --h = 横長の画面での左上のマス・マス数（18×10。0.5 刻みで半マスにも置ける）。01〜03 の間は 1.5 マス（細かい方眼の 3 目）
+     --mc, --mr, --mw, --mh = 縦長の画面（スマホ）での同じもの（8×13）
+     data-fill：スマホでは画面の高さに合わせて行を足し（上下の余白を左右とそろえる）、足した行を 01〜03 の高さに配る。
+     --x1, --x2, --x3 = 01〜03 に足す行数、--xr = 足した行の合計（main-portfolio.js が決める）
+     01〜03 のどれかが出っ張っている間は、ほかの 01〜03 が装飾になる（data-photo の画像に替わる。--pitch = 細かい方眼の間隔）
+     data-card の付いた要素（01〜03 のカード）は、押している間は下の方眼ごと凹み、離すと出っ張る（出っ張った状態で押して離すと平らに戻る）。
+     data-link の付いたカード（03 PROFILE）は、押している間だけ凹み、離すとそのままリンク先へ移る（出っ張らず、装飾やほかのカードも動かさない）。
+     data-modal-open="id" が付いていれば、ページを移らずに id のモーダル（data-modal）を開く（03 → プロフィール、「ALL ○○ →」→ そのカテゴリの作例一覧）。モーダルは方眼ごと浮き上がり、ほかの要素は消える（CLOSE × か Esc で閉じる）。
+     data-follow の付いた要素（「ALL ○○ →」）は、最後に押したカードと同じ動きを同時にする。
+     装飾になったカードは、出っ張るのに合わせて細かい方眼の 1 マスずつ data-photo の画像に替わる。
+     data-photo-focus = 画像のどこを切り抜くか（横 縦 拡大率。横・縦は 0〜1、省略すると真ん中で拡大なし）
+     data-cat = カードのカテゴリ（works.html?c= に渡す）。data-all のリンクは、カードが出っ張っている間はそのカテゴリの作例一覧へ「ALL ○○ →」と変わって装飾と一緒に出っ張り、平らなときは「ALL CONTENTS →」（全部の一覧） -->
+<main class="board" data-fill>
+  <h1 class="card card--title"
+      style="--c:0; --r:0; --w:8; --h:2.5;  --mc:0; --mr:0; --mw:6; --mh:2;">
+    <span>TAZAWA</span><span>PORTFOLIO</span>
+  </h1>
+  <div class="card card--index"
+       style="--c:14.5; --r:0; --w:3.5; --h:2.5;  --mc:6; --mr:0; --mw:2; --mh:2;">
+    <span>INDEX</span><span>01—03</span>
+  </div>
+
+  <button class="card card--link" data-card data-cat="web" data-photo="./assets/portfolio/photo.jpg" type="button"
+          style="--pitch:calc(var(--cell) / 6);  --c:0; --r:3.5; --w:4.5; --h:3;  --mc:0; --mr:3; --mw:5; --mh:calc(2 + var(--x1, 0));">
+    <span class="card__no">01</span>
+    <span class="card__name">WEB DESIGN</span>
+    <span class="card__go" aria-hidden="true">VIEW →</span>
+  </button>
+  <button class="card card--link" data-card data-cat="app" data-photo="./assets/portfolio/photo.jpg" data-photo-focus="0 1 2.2" type="button"
+          style="--pitch:calc(var(--cell) / 8);  --c:6; --r:4.5; --w:6; --h:4;  --mc:3; --mr:calc(6 + var(--x1, 0)); --mw:5; --mh:calc(2 + var(--x2, 0));">
+    <span class="card__no">02</span>
+    <span class="card__name">APPLICATION</span>
+    <span class="card__go" aria-hidden="true">VIEW →</span>
+  </button>
+  <a class="card card--link" href="./profile.html" data-card data-link data-modal-open="profile" data-photo="./assets/portfolio/photo.jpg" data-photo-focus="0.85 0.55 2.4"
+     style="--pitch:calc(var(--cell) / 4);  --c:13.5; --r:3.5; --w:4.5; --h:3;  --mc:0; --mr:calc(9 + var(--x1, 0) + var(--x2, 0)); --mw:5; --mh:calc(2 + var(--x3, 0));">
+    <span class="card__no">03</span>
+    <span class="card__name">PROFILE</span>
+    <span class="card__go" aria-hidden="true">VIEW →</span>
+  </a>
+
+  <a class="card card--foot card--all" href="./works.html" data-card data-follow data-all data-modal-open="works"
+     style="--c:0; --r:9; --w:5.5; --h:1;  --mc:0; --mr:calc(12 + var(--xr, 0)); --mw:5; --mh:1;">
+    <span data-all-label>ALL CONTENTS</span><span aria-hidden="true">→</span>
+  </a>
+
+  <!-- 作例一覧のモーダル（「ALL ○○ →」から開く）。中身は works-modal.js が works-data.js の作例から並べる -->
+  <section class="card card--modal" data-card data-modal id="works" role="dialog" aria-modal="true" aria-labelledby="works-title" inert
+           style="--c:0; --r:0; --w:18; --h:10;  --mc:0; --mr:0; --mw:8; --mh:calc(13 + var(--xr, 0));">
+    <header class="modal__head">
+      <span class="modal__no" data-works-count></span>
+      <h2 class="modal__title" id="works-title"></h2>
+      <button class="modal__close" type="button" data-close>CLOSE ×</button>
+    </header>
+    <nav class="modal__cats" aria-label="カテゴリ" data-works-cats></nav>
+    <ul class="modal__works" data-works-list></ul>
+  </section>
+
+  <!-- プロフィールのモーダル（03 から開く）。中身は profile.html と同じ。決まったら両方を書き換える -->
+  <section class="card card--modal" data-card data-modal id="profile" role="dialog" aria-modal="true" aria-labelledby="profile-title" inert
+           style="--c:0; --r:0; --w:18; --h:10;  --mc:0; --mr:0; --mw:8; --mh:calc(13 + var(--xr, 0));">
+    <header class="modal__head">
+      <span class="modal__no">03</span>
+      <h2 class="modal__title" id="profile-title">PROFILE</h2>
+      <button class="modal__close" type="button" data-close>CLOSE ×</button>
+    </header>
+    <div class="modal__body">
+      <section class="card--text">
+        <h2>ABOUT</h2>
+        <p>田澤（TAZAWA）。Web サイトとアプリケーションのデザインから、実装までを一人で手がけています。</p>
+        <p>方眼と立体の動きのように、画面の中で「触れると応える」ことを大事にしています。</p>
+      </section>
+      <section class="card--text">
+        <h2>SKILLS</h2>
+        <dl>
+          <dt>DESIGN</dt><dd>Figma / UI / グラフィック</dd>
+          <dt>CODE</dt><dd>HTML / CSS / JavaScript / WebGL</dd>
+          <dt>3D</dt><dd>Blender / three.js</dd>
+        </dl>
+      </section>
+      <section class="card--text">
+        <h2>CONTACT</h2>
+        <dl>
+          <dt>MAIL</dt><dd>COMING SOON</dd>
+          <dt>SNS</dt><dd>COMING SOON</dd>
+        </dl>
+      </section>
+    </div>
+  </section>
+</main>
+
+<script type="module" src="./works-modal.js"></script>
+<script type="module" src="./main-portfolio.js"></script>
+</body>
+</html>

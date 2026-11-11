@@ -1,0 +1,356 @@
+:root {
+  --cols: 16;      /* レイアウトのマス数（横長の画面） */
+  --rows: 10;
+  --ext: 0;        /* 左右の余白を上下とそろえるため、左右に足すマス数（main-portfolio.js が決める） */
+  --sub: 2;        /* 方眼の線は 1 マスをこの数に分けて引く（main-portfolio.js の SUBDIV と同じ） */
+  --cell: 64px;    /* マスの大きさ。main-portfolio.js が画面に合わせて整数 px で上書きする */
+  --line: 1.25px;  /* 線の太さ（main-portfolio.js の LINE_W と同じ） */
+  --ink: #1c1c1c;
+  --paper: #f3f1ea;
+  --sans: "Helvetica Neue", "Neue Haas Grotesk Text", Arial, "Hiragino Sans", sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, monospace;
+}
+/* 縦長の画面（スマホ）は 8 列にして縦に並べる。main-portfolio.js は --cols / --rows を読む */
+@media (max-aspect-ratio: 1/1), (max-width: 760px) {
+  :root { --cols: 8; --rows: 13; }
+  .desk-only { display: none; }
+}
+
+* { box-sizing: border-box; }
+
+html, body { margin: 0; }
+
+body {
+  min-height: 100vh;
+  display: grid;
+  justify-items: center;
+  align-items: start;
+  padding: 32px 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--sans);
+}
+@media (min-aspect-ratio: 1/1) and (min-width: 761px) {
+  body { align-items: center; }
+}
+/* スマホで画面の高さに合わせるボード（data-fill）：上下の余白を左右とそろえるので、上下の余白は付けずに真ん中に置く */
+@media (max-aspect-ratio: 1/1), (max-width: 760px) {
+  body:has(.board[data-fill]) { padding: 0; align-items: center; }
+}
+
+#grid {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+}
+
+.board {
+  position: relative;
+  display: grid;
+  /* 線の 1 目（半マス）ごとに区切り、要素を半マス単位で置けるようにする */
+  grid-template-columns: repeat(calc((var(--cols) + var(--ext) * 2) * 2), calc(var(--cell) / 2));
+  grid-template-rows: repeat(calc(var(--rows) * 2), calc(var(--cell) / 2));
+  /* WebGL が使えない環境向けの平らな方眼（canvas と同じ位置・間隔） */
+  background-image:
+    linear-gradient(var(--ink) var(--line), transparent var(--line)),
+    linear-gradient(90deg, var(--ink) var(--line), transparent var(--line));
+  background-size: calc(var(--cell) / var(--sub)) calc(var(--cell) / var(--sub));
+  background-position: calc(var(--line) / -2) calc(var(--line) / -2);
+}
+body.webgl .board { background-image: none; }
+
+/* マスに合わせて置く要素。--c, --r = 左上のマス、--w, --h = マス数（0.5 刻みで半マスにも置ける）。
+   --gl, --gr = 左端・右端に接する要素を、足したマス（--ext）の分だけ外へ伸ばす量（main-portfolio.js が決める） */
+.card {
+  --gl: 0;
+  --gr: 0;
+  grid-column: calc((var(--c) + var(--ext) - var(--gl)) * 2 + 1) / span calc((var(--w) + var(--gl) + var(--gr)) * 2);
+  grid-row: calc(var(--r) * 2 + 1) / span calc(var(--h) * 2);
+}
+@media (max-aspect-ratio: 1/1), (max-width: 760px) {
+  .card {
+    grid-column: calc(var(--mc) * 2 + 1) / span calc(var(--mw) * 2);
+    grid-row: calc(var(--mr) * 2 + 1) / span calc(var(--mh) * 2);
+  }
+}
+
+/* カード：角は 90 度。枠線は方眼の線と同じ位置・太さ（境界をまたいで内外に半分ずつ）。
+   浮き上がったときは、地と枠線（::before）だけを上下左右に --gx, --gy 広げる（凹んだときは負の値で縮める）。
+   中身は縦横同じ倍率（--zoom）で、カードの左上に付いたまま少しだけ大きくする */
+.card {
+  --bg: var(--paper);
+  --gx: 0px;
+  --gy: 0px;
+  --zoom: 1;
+  position: relative;
+  z-index: 1;
+  isolation: isolate;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+.card::before {
+  content: "";
+  position: absolute;
+  inset: calc(var(--gy) * -1) calc(var(--gx) * -1);
+  z-index: -1;
+  background: var(--bg);
+  box-shadow: 0 0 0 calc(var(--line) / 2) var(--ink), inset 0 0 0 calc(var(--line) / 2) var(--ink);
+}
+.card > * {
+  transform: translate(calc(var(--gx) * -1), calc(var(--gy) * -1)) scale(var(--zoom));
+  transform-origin: calc(var(--ox, 0px) * -1) calc(var(--oy, 0px) * -1);   /* カードの左上を中心に（--ox, --oy = カード内の位置。main-portfolio.js が測る） */
+}
+
+/* タイトル：2 行を 2 マスに合わせる */
+.card--title {
+  display: flex;
+  flex-direction: column;
+  padding: calc(var(--cell) * 0.06) calc(var(--cell) * 0.12) 0;
+  font-size: calc(var(--cell) * 0.86);
+  font-weight: 400;
+  line-height: var(--cell);
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+
+/* 小さな文字のカード（等幅） */
+.card--index, .card--foot {
+  display: flex;
+  justify-content: space-between;
+  padding: calc(var(--cell) * 0.2);
+  font: 400 calc(var(--cell) * 0.2) / 1.2 var(--mono);
+  letter-spacing: 0.08em;
+}
+.card--index { flex-direction: column; }
+.card--foot { align-items: center; }
+/* 1 行のカード（フッター・ALL ○○ →）は文字を上下中央にそろえているので、浮き上がっても上下中央のままにする。
+   横長のカードは縦の広がりに比べて拡大が小さく、左上を中心にすると文字が上へずれるため、縦は動かさずに中央（50%）を中心に拡大する */
+.card--foot > * {
+  transform: translate(calc(var(--gx) * -1), 0) scale(var(--zoom));
+  transform-origin: calc(var(--ox, 0px) * -1) 50%;
+}
+
+/* リンクカード：左上に番号、下に名前、右下に VIEW → */
+.card--link {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  padding: calc(var(--cell) * 0.2);
+  cursor: pointer;
+}
+.card__no, .card__go {
+  font: 400 calc(var(--cell) * 0.2) / 1 var(--mono);
+  letter-spacing: 0.08em;
+}
+.card__name {
+  align-self: end;
+  font-size: calc(var(--cell) * 0.56);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+.card__go { justify-self: end; margin-top: calc(var(--cell) * 0.2); }
+.card--link:focus-visible { outline: none; }
+.card--link, .card--link::before { transition: color 0.2s, background-color 0.2s; }
+/* マウスを重ねると地と文字の色を入れ替える（指で触れる画面では変えない） */
+@media (hover: hover) {
+  .card--link:hover { --bg: var(--ink); color: var(--paper); }
+}
+/* 選択中（出っ張っている。main-portfolio.js が is-selected を付ける）もホバーと同じ色にする */
+.card--link.is-selected { --bg: var(--ink); color: var(--paper); }
+.card--link:focus-visible .card__go { text-decoration: underline; }
+
+/* 作例一覧へのリンク（ALL ○○ →）・トップへ戻るリンク。リンクカードと同じく、重ねると地と文字の色を入れ替える */
+a.card { text-decoration: none; }
+.card--all, .card--all::before { transition: color 0.2s, background-color 0.2s; }
+@media (hover: hover) {
+  .card--all:hover { --bg: var(--ink); color: var(--paper); }
+}
+/* トップの「ALL ○○ →」は、ほかの小さな文字より大きく（カードの名前と同じ書体で）して目立たせる */
+.card--foot.card--all {
+  padding: 0 calc(var(--cell) * 0.2);
+  font: 400 calc(var(--cell) * 0.4) / 1 var(--sans);
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+/* 01・02 を選んでいる間（main-portfolio.js が is-selected を付ける）もホバーと同じ色にする */
+.card--all.is-selected { --bg: var(--ink); color: var(--paper); }
+.card--all:focus-visible { outline: none; }
+.card--all:focus-visible > :first-child { text-decoration: underline; }
+
+/* 文章のカード（profile.html の自己紹介など） */
+.card--text {
+  padding: calc(var(--cell) * 0.2);
+  font-size: max(calc(var(--cell) * 0.22), 11px);
+  line-height: 1.8;
+}
+.card--text > h2 {
+  margin: 0 0 calc(var(--cell) * 0.2);
+  font: 400 calc(var(--cell) * 0.2) / 1.2 var(--mono);
+  letter-spacing: 0.08em;
+}
+.card--text > p { margin: 0 0 0.8em; }
+.card--text dl { display: grid; grid-template-columns: auto 1fr; gap: 0.2em 1.2em; margin: 0; }
+.card--text dt { font-family: var(--mono); font-size: 0.85em; letter-spacing: 0.08em; }
+.card--text dd { margin: 0; }
+
+/* モーダル（index.html のプロフィール・作例一覧）：閉じている間は見せない（位置を測れるよう、消さずに隠す）。
+   開くとほかの要素を消して方眼だけにし、その上にモーダルが方眼ごと浮く（main-portfolio.js が is-open・is-modal-open を付ける） */
+.card--modal {
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--cell) * 0.5);
+  padding: calc(var(--cell) * 0.4);
+  visibility: hidden;
+}
+.card--modal.is-open { visibility: visible; }
+/* 横長の画面では、置いたマスから 1 マス内側に寄せる。浮いたときの斜面（外側に半マス × 2）が方眼の外枠の手前で終わり、角が外枠で切れない */
+@media (min-aspect-ratio: 1/1) and (min-width: 761px) {
+  .card--modal { margin: var(--cell); }
+}
+body.is-modal-open .card:not(.card--modal) { visibility: hidden; }
+/* 画面の切り替え（モーダルを開く・閉じる・中身を替える）：その間は本物を隠し、main-portfolio.js が上に重ねた canvas（.fx）に
+   細かいマス 1 マスずつ入れ替わる様子を描く（装飾の画像と同じ替わり方） */
+.fx-hide { clip-path: inset(0 0 100% 0) !important; }
+.fx { position: fixed; inset: 0; z-index: 30; width: 100%; height: 100%; pointer-events: none; }
+.modal__head {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: start;
+  gap: calc(var(--cell) * 0.3);
+}
+.modal__no { font: 400 calc(var(--cell) * 0.2) / 1 var(--mono); letter-spacing: 0.08em; }
+.modal__title {
+  margin: 0;
+  font-size: calc(var(--cell) * 0.86);
+  font-weight: 400;
+  line-height: 0.9;
+  letter-spacing: -0.02em;
+}
+.modal__close {
+  padding: calc(var(--cell) * 0.12) calc(var(--cell) * 0.18);
+  border: var(--line) solid var(--ink);
+  background: var(--paper);
+  color: var(--ink);
+  font: 400 max(11px, calc(var(--cell) * 0.2)) / 1 var(--mono);
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: color .2s, background-color .2s;
+}
+.modal__close:hover, .modal__close:focus-visible { background: var(--ink); color: var(--paper); outline: none; }
+/* 中身：横長は 3 列（自己紹介を広く）、縦長は縦に並べる */
+.modal__body {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: calc(var(--cell) * 0.5);
+}
+.modal__body > .card--text { padding: 0; }
+@media (max-aspect-ratio: 1/1), (max-width: 760px) {
+  .modal__body { grid-template-columns: 1fr; gap: calc(var(--cell) * 0.3); }
+  .modal__title { font-size: calc(var(--cell) * 0.55); }   /* 「APPLICATION」が CLOSE × と並んで 1 行に収まる大きさ */
+}
+.modal__no, .modal__close { white-space: nowrap; }
+/* 作例一覧のモーダル：カテゴリの切り替え（いま見ているカテゴリは地と文字の色を入れ替える）と作例の枠 */
+.modal__cats { display: flex; flex-wrap: wrap; gap: calc(var(--cell) * 0.1) calc(var(--cell) * 0.3); }
+.modal__cats button {
+  padding: 0.2em 0.4em;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: 400 max(11px, calc(var(--cell) * 0.2)) / 1.2 var(--mono);
+  letter-spacing: 0.08em;
+  cursor: pointer;
+}
+.modal__cats button:hover, .modal__cats button:focus-visible { outline: none; text-decoration: underline; }
+.modal__cats button[aria-current] { background: var(--ink); color: var(--paper); }
+.modal__works {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: calc(var(--cell) * 0.3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.modal__works li {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  height: calc(var(--cell) * 2);
+  padding: calc(var(--cell) * 0.2);
+  border: var(--line) solid var(--ink);
+  font: 400 max(11px, calc(var(--cell) * 0.2)) / 1 var(--mono);
+  letter-spacing: 0.08em;
+}
+.modal__works li > :last-child { justify-self: end; }
+.modal__work-name { align-self: end; font: 400 calc(var(--cell) * 0.4) / 1 var(--sans); letter-spacing: -0.02em; }
+@media (max-aspect-ratio: 1/1), (max-width: 760px) {
+  .modal__works { grid-template-columns: repeat(2, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .card { transition: none; }
+}
+
+/* 作例一覧（works.html）のカテゴリの切り替え。いま見ているカテゴリは地と文字の色を入れ替える */
+.card--cats a { align-self: flex-start; padding: 0 0.3em; margin-left: -0.3em; color: inherit; text-decoration: none; }
+.card--cats a:hover, .card--cats a:focus-visible { outline: none; text-decoration: underline; }
+.card--cats a[aria-current] { background: var(--ink); color: var(--paper); }
+
+/* 装飾：細かい方眼。--pitch = 線の間隔（地の方眼より細かくして、カードがあるのが分かるようにする）。
+   線は地の方眼と同じ太さで境界をまたぎ、広がっても線の位置が動かないようカードの左上に合わせる */
+.card--grid, .card--link.is-decor {
+  --pitch: calc(var(--cell) / 6);
+  --bg:
+    linear-gradient(var(--ink) var(--line), transparent var(--line)) calc(var(--gx) - var(--line) / 2) calc(var(--gy) - var(--line) / 2) / var(--pitch) var(--pitch),
+    linear-gradient(90deg, var(--ink) var(--line), transparent var(--line)) calc(var(--gx) - var(--line) / 2) calc(var(--gy) - var(--line) / 2) / var(--pitch) var(--pitch),
+    var(--paper);
+}
+
+/* スマホで装飾の代わりをしている 01〜03（main-portfolio.js が is-decor を付ける）。地を細かい方眼にして文字を隠す */
+.card--link.is-decor > :not(.card__photo) { visibility: hidden; }
+
+/* 画像に替わる装飾（data-photo）。main-portfolio.js が canvas に、替わったマスの画像と方眼の線を描く。
+   canvas は広がりきったときの大きさで置き、地の方眼と線の位置をそろえる */
+.card > .card__photo {
+  position: absolute;
+  transform: none;
+  pointer-events: none;
+}
+
+/* MORE ボタン：右下の角（広がった地の角）に付く。--more（0〜1）= 出具合。main-portfolio.js が方眼の線の消え具合に合わせて決める。
+   地が少しずつ濃くなり、文字はぼけた所からはっきりし、矢印は左から伸びる */
+.card > .card__more {
+  --more: 0;
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  width: calc(var(--cell) * 2);
+  height: calc(var(--cell) / 2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 calc(var(--cell) * 0.2);
+  border: 0;
+  background: color-mix(in srgb, var(--paper) calc(var(--more) * 92%), transparent);
+  color: var(--ink);
+  font: 400 calc(var(--cell) * 0.2) / 1 var(--mono);
+  letter-spacing: 0.16em;
+  cursor: pointer;
+  visibility: hidden;
+  opacity: min(var(--more) * 1.6, 1);
+  filter: blur(calc((1 - var(--more)) * 2px));
+  transform: translate(var(--gx), var(--gy));
+}
+.card__more > span {
+  letter-spacing: 0;
+  clip-path: inset(0 calc((1 - var(--more)) * 100%) 0 0);
+  transition: transform 0.2s;
+}
+.card__more:hover > span { transform: translateX(calc(var(--cell) * 0.06)); }
