@@ -138,8 +138,10 @@ body.webgl .board { background-image: none; }
   transform-origin: calc(var(--ox, 0px) * -1) 50%;
 }
 
-/* リンクカード：左上に番号、下に名前、右下に VIEW → */
+/* リンクカード：左上に番号、下に名前、右下に VIEW →。地は紙の色より少しだけグレー（--face。main-portfolio.js も文字の面を描くときに使う） */
 .card--link {
+  --face: #e6e4dd;
+  --bg: var(--face);
   display: grid;
   grid-template-rows: auto 1fr auto;
   padding: calc(var(--cell) * 0.2);
@@ -311,6 +313,10 @@ body.is-modal-open .card:not(.card--modal) { visibility: hidden; }
     linear-gradient(90deg, var(--ink) var(--line), transparent var(--line)) calc(var(--gx) - var(--line) / 2) calc(var(--gy) - var(--line) / 2) / var(--pitch) var(--pitch),
     var(--paper);
 }
+
+/* 作例のサムネイル（data-work）：画像が出ている間（is-live）だけ押せる見た目にする */
+.card--grid[data-work] { cursor: default; }
+.card--grid[data-work].is-live { cursor: pointer; }
 
 /* スマホで装飾の代わりをしている 01〜03（main-portfolio.js が is-decor を付ける）。地を細かい方眼にして文字を隠す */
 .card--link.is-decor > :not(.card__photo) { visibility: hidden; }

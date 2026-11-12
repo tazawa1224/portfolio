@@ -20,17 +20,21 @@
 <canvas id="grid" aria-hidden="true"></canvas>
 
 <!-- 方眼のボード。要素はマスに合わせて置く。
-     --c, --r, --w, --h = 横長の画面での左上のマス・マス数（18×10。0.5 刻みで半マスにも置ける）。01〜03 の間は 1.5 マス（細かい方眼の 3 目）
-     --mc, --mr, --mw, --mh = 縦長の画面（スマホ）での同じもの（8×13）
-     data-fill：スマホでは画面の高さに合わせて行を足し（上下の余白を左右とそろえる）、足した行を 01〜03 の高さに配る。
-     --x1, --x2, --x3 = 01〜03 に足す行数、--xr = 足した行の合計（main-portfolio.js が決める）
-     01〜03 のどれかが出っ張っている間は、ほかの 01〜03 が装飾になる（data-photo の画像に替わる。--pitch = 細かい方眼の間隔）
-     data-card の付いた要素（01〜03 のカード）は、押している間は下の方眼ごと凹み、離すと出っ張る（出っ張った状態で押して離すと平らに戻る）。
-     data-link の付いたカード（03 PROFILE）は、押している間だけ凹み、離すとそのままリンク先へ移る（出っ張らず、装飾やほかのカードも動かさない）。
-     data-modal-open="id" が付いていれば、ページを移らずに id のモーダル（data-modal）を開く（03 → プロフィール、「ALL ○○ →」→ そのカテゴリの作例一覧）。モーダルは方眼ごと浮き上がり、ほかの要素は消える（CLOSE × か Esc で閉じる）。
-     data-follow の付いた要素（「ALL ○○ →」）は、最後に押したカードと同じ動きを同時にする。
-     装飾になったカードは、出っ張るのに合わせて細かい方眼の 1 マスずつ data-photo の画像に替わる。
-     data-photo-focus = 画像のどこを切り抜くか（横 縦 拡大率。横・縦は 0〜1、省略すると真ん中で拡大なし）
+     --c, --r, --w, --h = 横長の画面での左上のマス・マス数（18×10。0.5 刻みで半マスにも置ける）。カードの間は 1.5 マス（細かい方眼の 3 目）
+     --mc, --mr, --mw, --mh = 縦長の画面（スマホ）での同じもの（8×13）。desk-only はスマホでは出さない
+     data-fill：スマホでは画面の高さに合わせて行を足し（上下の余白を左右とそろえる。足りなければマスを縮めてスクロールさせない）、
+     スマホの 3 枚（01・02・サムネイル）は同じ大きさで、左・右・中央と少しずつずらして縦に並べる。足した行は 3 枚に同じだけ配り、余りは間に配る。
+     --xe = 1 枚に足す行数、--xg = 間 1 つに足す行数（半マス刻み）、--xr = 足した行の合計（main-portfolio.js が決める）
+     横長の画面では 3 枚の装飾（card--grid）が、出っ張ったカードと一緒に動く。スマホでは装飾の代わりに、出っ張ったカード以外の 01・02 が装飾になる（data-photo の画像に替わる。--pitch = 細かい方眼の間隔）
+     data-card の付いた要素（01・02 のカード）は、押している間は下の方眼ごと凹み、離すと出っ張る（出っ張った状態で押して離すと平らに戻る）。
+     data-link の付いたカード（02 PROFILE）は、押している間だけ凹み、離すとそのままリンク先へ移る（出っ張らず、装飾やほかのカードも動かさない）。
+     data-modal-open="id" が付いていれば、ページを移らずに id のモーダル（data-modal）を開く（02 → プロフィール、「ALL ○○ →」→ そのカテゴリの作例一覧）。モーダルは方眼ごと浮き上がり、ほかの要素は消える（CLOSE × か Esc で閉じる）。
+     data-follow の付いた要素（装飾と「ALL ○○ →」）は、最後に押したカードと同じ動きを同時にする。
+     装飾は、出っ張るのに合わせて細かい方眼の 1 マスずつ data-photo の画像に替わる。
+     data-photo-focus = 画像のどこを切り抜くか（横 縦 拡大率。横・縦は 0〜1、省略すると真ん中で拡大なし）。data-photo-focus-sp = スマホでの同じもの
+     data-work-href = スマホで 01・02 が装飾の代わりに画像を出している間、押すと開く作例サイト（別のタブ。いまは仮に土の子FARM）
+     data-work の付いた装飾は作例のサムネイル。画像が出ている間だけ押せて（is-live）、href の作例サイトを別のタブで開く
+     card__more = 画像が出ている装飾にマウスを重ね、方眼の線が消えるのと一緒に右下に出るボタン
      data-cat = カードのカテゴリ（works.html?c= に渡す）。data-all のリンクは、カードが出っ張っている間はそのカテゴリの作例一覧へ「ALL ○○ →」と変わって装飾と一緒に出っ張り、平らなときは「ALL CONTENTS →」（全部の一覧） -->
 <main class="board" data-fill>
   <h1 class="card card--title"
@@ -39,26 +43,36 @@
   </h1>
   <div class="card card--index"
        style="--c:14.5; --r:0; --w:3.5; --h:2.5;  --mc:6; --mr:0; --mw:2; --mh:2;">
-    <span>INDEX</span><span>01—03</span>
+    <span>INDEX</span><span>01—02</span>
   </div>
+  <!-- 作例のサムネイル（ALONGSIDE PARTNERS）。画像が出ている間だけ押せて、作例のサイトを別のタブで開く -->
+  <a class="card card--grid desk-only" href="https://tazawa1224.github.io/ALONGSIDE-PARTNERS/" target="_blank" rel="noopener"
+     data-card data-follow data-work data-photo="./assets/portfolio/works/alongside-partners.jpg" data-photo-focus="0.85 0.5 1" aria-label="ALONGSIDE PARTNERS（作例のサイトを開く）" tabindex="-1"
+     style="--pitch:calc(var(--cell) / 4);  --c:9.5; --r:1.5; --w:3.5; --h:3;  --mc:0; --mr:0; --mw:0; --mh:0;">
+    <span class="card__more" aria-hidden="true">MORE<span>→</span></span>
+  </a>
 
-  <button class="card card--link" data-card data-cat="web" data-photo="./assets/portfolio/photo.jpg" type="button"
-          style="--pitch:calc(var(--cell) / 6);  --c:0; --r:3.5; --w:4.5; --h:3;  --mc:0; --mr:3; --mw:5; --mh:calc(2 + var(--x1, 0));">
+  <button class="card card--link" data-card data-cat="web" data-work-href="https://tazawa1224.github.io/tsuchinoko-firm/%E5%9C%9F%E3%81%AE%E5%AD%90FARM%20SP.dc.html" data-photo="./assets/portfolio/photo.jpg" type="button"
+          style="--pitch:calc(var(--cell) / 6);  --c:3.5; --r:4; --w:4.5; --h:3.5;  --mc:0; --mr:3; --mw:4.5; --mh:calc(2 + var(--xe, 0));">
     <span class="card__no">01</span>
     <span class="card__name">WEB DESIGN</span>
     <span class="card__go" aria-hidden="true">VIEW →</span>
   </button>
-  <button class="card card--link" data-card data-cat="app" data-photo="./assets/portfolio/photo.jpg" data-photo-focus="0 1 2.2" type="button"
-          style="--pitch:calc(var(--cell) / 8);  --c:6; --r:4.5; --w:6; --h:4;  --mc:3; --mr:calc(6 + var(--x1, 0)); --mw:5; --mh:calc(2 + var(--x2, 0));">
+  <a class="card card--link" href="./profile.html" data-card data-link data-modal-open="profile" data-work-href="https://tazawa1224.github.io/tsuchinoko-firm/%E5%9C%9F%E3%81%AE%E5%AD%90FARM%20SP.dc.html" data-photo="./assets/portfolio/photo.jpg" data-photo-focus="0.85 0.55 2.4"
+     style="--pitch:calc(var(--cell) / 4);  --c:9.5; --r:6; --w:4.5; --h:3.5;  --mc:3.5; --mr:calc(6 + var(--xe, 0) + var(--xg, 0)); --mw:4.5; --mh:calc(2 + var(--xe, 0));">
     <span class="card__no">02</span>
-    <span class="card__name">APPLICATION</span>
-    <span class="card__go" aria-hidden="true">VIEW →</span>
-  </button>
-  <a class="card card--link" href="./profile.html" data-card data-link data-modal-open="profile" data-photo="./assets/portfolio/photo.jpg" data-photo-focus="0.85 0.55 2.4"
-     style="--pitch:calc(var(--cell) / 4);  --c:13.5; --r:3.5; --w:4.5; --h:3;  --mc:0; --mr:calc(9 + var(--x1, 0) + var(--x2, 0)); --mw:5; --mh:calc(2 + var(--x3, 0));">
-    <span class="card__no">03</span>
     <span class="card__name">PROFILE</span>
     <span class="card__go" aria-hidden="true">VIEW →</span>
+  </a>
+  <!-- まだ作例のない装飾。画像の代わりに「COMING SOON」を出す（押しても何もしない） -->
+  <div class="card card--grid desk-only" data-card data-follow data-photo="./assets/portfolio/works/coming-soon.svg" aria-hidden="true"
+       style="--pitch:calc(var(--cell) / 6);  --c:15.5; --r:5.5; --w:2.5; --h:3;  --mc:0; --mr:0; --mw:0; --mh:0;">
+  </div>
+  <!-- 作例のサムネイル（data-work）。画像が出ている間だけ押せて、作例のサイトを別のタブで開く。スマホでも 01・02 と同じ大きさで出す -->
+  <a class="card card--grid" href="https://tazawa1224.github.io/tsuchinoko-firm/%E5%9C%9F%E3%81%AE%E5%AD%90FARM%20SP.dc.html" target="_blank" rel="noopener"
+     data-card data-follow data-work data-photo="./assets/portfolio/works/tsuchinoko-farm.jpg" data-photo-focus="0.5 0.67 1.3" data-photo-focus-sp="0.5 0.5 1" aria-label="土の子FARM（作例のサイトを開く）" tabindex="-1"
+     style="--pitch:calc(var(--cell) / 8);  --c:0; --r:4; --w:2; --h:3;  --mc:1.5; --mr:calc(9 + 2 * var(--xe, 0) + 2 * var(--xg, 0)); --mw:4.5; --mh:calc(2 + var(--xe, 0));">
+    <span class="card__more" aria-hidden="true">MORE<span>→</span></span>
   </a>
 
   <a class="card card--foot card--all" href="./works.html" data-card data-follow data-all data-modal-open="works"
@@ -78,11 +92,11 @@
     <ul class="modal__works" data-works-list></ul>
   </section>
 
-  <!-- プロフィールのモーダル（03 から開く）。中身は profile.html と同じ。決まったら両方を書き換える -->
+  <!-- プロフィールのモーダル（02 から開く）。中身は profile.html と同じ。決まったら両方を書き換える -->
   <section class="card card--modal" data-card data-modal id="profile" role="dialog" aria-modal="true" aria-labelledby="profile-title" inert
            style="--c:0; --r:0; --w:18; --h:10;  --mc:0; --mr:0; --mw:8; --mh:calc(13 + var(--xr, 0));">
     <header class="modal__head">
-      <span class="modal__no">03</span>
+      <span class="modal__no">02</span>
       <h2 class="modal__title" id="profile-title">PROFILE</h2>
       <button class="modal__close" type="button" data-close>CLOSE ×</button>
     </header>

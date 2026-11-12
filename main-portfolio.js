@@ -278,11 +278,15 @@ function sizePhoto(p, W, H, E) {
   Object.assign(p.cv.style, { left: `${-E}px`, top: `${-E}px`, width: `${cw}px`, height: `${ch}px` });
   p.cv.width = Math.round(cw * dpr); p.cv.height = Math.round(ch * dpr);
   Object.assign(p, { W, H, E, pitch, dpr, cw, ch, key: '' });
+  p.bare = true;   // 装飾も 01・02 と同じく、画像の上に方眼の線を引かない（外枠だけ）
   // 画像は canvas いっぱいに切り抜いて（data-photo-focus の位置・拡大率で）おく
   if (p.img.complete && p.img.naturalWidth) {
     const off = p.off ?? document.createElement('canvas');
     off.width = p.cv.width; off.height = p.cv.height;
-    const [fx = 0.5, fy = 0.5, zoom = 1] = (p.el.dataset.photoFocus ?? '').split(' ').filter(Boolean).map(Number);   // 切り抜く位置（0〜1）と拡大率
+    // 切り抜く位置（0〜1）と拡大率。縦長の画面（スマホ）では data-photo-focus-sp があればそちらを使う
+    const sp = matchMedia('(max-aspect-ratio: 1/1), (max-width: 760px)').matches;
+    const focus = (sp && p.el.dataset.photoFocusSp) || p.el.dataset.photoFocus || '';
+    const [fx = 0.5, fy = 0.5, zoom = 1] = focus.split(' ').filter(Boolean).map(Number);
     const o = off.getContext('2d'), k = Math.max(off.width / p.img.naturalWidth, off.height / p.img.naturalHeight) * zoom;
     o.filter = PHOTO_FILTER;
     o.drawImage(p.img, (off.width - p.img.naturalWidth * k) * fx, (off.height - p.img.naturalHeight * k) * fy, p.img.naturalWidth * k, p.img.naturalHeight * k);
@@ -306,7 +310,8 @@ function makeFace(p) {
   face.width = p.cv.width; face.height = p.cv.height;
   const o = face.getContext('2d');
   o.setTransform(p.dpr, 0, 0, p.dpr, 0, 0);
-  o.fillStyle = getComputedStyle(p.el).getPropertyValue('--paper');
+  const cs0 = getComputedStyle(p.el);
+  o.fillStyle = cs0.getPropertyValue('--face') || cs0.getPropertyValue('--paper');
   o.fillRect(0, 0, p.cw, p.ch);
   o.textBaseline = 'middle';
   for (const el of p.el.children) {
@@ -382,9 +387,9 @@ function drawPhoto(p, t, gx, gy, now, fast, decor) {
     shown.push(c);
   }
   // 替わったマスの上に方眼の線を引き直す（地の方眼と同じ位置・太さ）。外枠は内側の半分だけ。
-  // 01〜03（p.face あり＝スマホで装飾の代わりをするカード）は画像の上に線を引かず、外枠だけ
+  // いまは全部（p.bare）画像の上に線を引かず、外枠だけ。p.bare を外すと、線を引き、マウスを重ねている間だけ消す
   ctx.fillStyle = ink;
-  if (p.face) {
+  if (p.face || p.bare) {
     // 線なし
   } else if (q <= 0) {
     for (const c of shown) {
@@ -581,9 +586,11 @@ void main(){
     sp = portrait;
     const fit = portrait ? (vw - 32) / cols : Math.min((vw - 64) / cols, (vh - 64) / rows);
     cell = Math.max(16, Math.floor(fit / SUBDIV) * SUBDIV);
-    // スマホで data-fill のボード：上下の余白が左右の余白とほぼ同じになるまで行を足し、01〜03 の高さに配る（02 → 01 → 03 の順に 1 行ずつ）。
+    // スマホで data-fill のボード：上下の余白が左右の余白とほぼ同じになるまで行を足し、3 枚の高さに同じだけ配る（余りは間に）。
     // マスは 1 割小さくするまでの中から、上下と左右の余白の差が小さく、余白が広がりすぎない大きさを選ぶ
     const fill = portrait && board.hasAttribute('data-fill');
+    // 画面が低くて決まった行数が入りきらないときは、マスを縮めてスクロールさせない（上下にも左右と同じ 16px は空ける）
+    if (fill) cell = Math.max(16, Math.min(cell, Math.floor((vh - 32) / rows / SUBDIV) * SUBDIV));
     if (fill) {
       const side0 = (vw - cols * cell) / 2;
       let best = Infinity;
@@ -598,9 +605,10 @@ void main(){
       const side = (vw - cols * cell) / 2, x = Math.max(0, Math.floor((vh - 2 * side) / cell) - rows);
       rows += x;
       document.documentElement.style.setProperty('--rows', rows);
-      board.style.setProperty('--x1', Math.floor((x + 1) / 3));
-      board.style.setProperty('--x2', Math.floor((x + 2) / 3));
-      board.style.setProperty('--x3', Math.floor(x / 3));
+      // 3 枚に同じだけ（半マス刻み）。余りが 1 行あれば 2 つの間に半マスずつ、半マス残れば ALL の上に回す
+      const e = Math.floor(x * 2 / 3) / 2;
+      board.style.setProperty('--xe', e);
+      board.style.setProperty('--xg', x - 3 * e >= 1 ? 0.5 : 0);
       board.style.setProperty('--xr', x);
     }
     // 横長の画面は、左右の余白が上下の余白とほぼ同じになるよう左右にマスを足し、
@@ -675,7 +683,7 @@ void main(){
   // data-link のカード（プロフィールなど）は凹むだけで出っ張らず、装飾も動かさない（離すとリンク先へ移る）
   for (const o of cards) {
     o.link = o.el.hasAttribute('data-link');
-    const press = () => { o.press = true; o.pressUntil = performance.now() + PRESS_MIN; o.fromFlat = !o.raised; if (!o.link) active = o; };
+    const press = () => { if (o.el.classList.contains('is-live')) return; o.press = true; o.pressUntil = performance.now() + PRESS_MIN; o.fromFlat = !o.raised; if (!o.link) active = o; };
     const release = commit => {
       if (o.press && commit && !o.link) {
         o.raised = !o.raised;
@@ -694,11 +702,25 @@ void main(){
   }
   // 01〜03 以外の場所を押したら、出っ張っているカードを平らに戻す（装飾も一緒に戻る）。装飾の MORE ボタンと「ALL ○○ →」は除く
   addEventListener('pointerdown', e => {
-    if (e.button === 0 && !cards.some(o => o.el.contains(e.target)) && !e.target.closest('.card__more, [data-all], [data-modal]')) {
+    if (e.button === 0 && !cards.some(o => o.el.contains(e.target)) && !e.target.closest('.card__more, [data-all], [data-modal], [data-work].is-live')) {
       for (const o of cards) o.raised = false;
       pointAll();
     }
   });
+
+  // スマホで装飾の代わりをしている 01・02 は、画像が出きっている間（is-live）は作例のサムネイルになり、
+  // 押すと data-work-href の作例サイトを別のタブで開く（カード本来の動き・リンク・モーダルは止める）
+  for (const o of cards) if (o.el.dataset.workHref) {
+    o.el.addEventListener('click', e => {
+      if (!o.el.classList.contains('is-live')) return;
+      e.preventDefault(); e.stopImmediatePropagation();
+      open(o.el.dataset.workHref, '_blank', 'noopener');
+    }, true);
+  }
+  // 作例のサムネイル（data-work）は、画像が出きっている間だけ作例サイトへ移れる（平らなとき・出る途中は押しても何もしない）
+  for (const o of objs) if (o.el.hasAttribute('data-work')) {
+    o.el.addEventListener('click', e => { if (!o.el.classList.contains('is-live')) e.preventDefault(); });
+  }
 
   renderer.setAnimationLoop(() => {
     camera.position.set(0, 0, dist);
@@ -707,7 +729,7 @@ void main(){
 
     const now = performance.now();
     // 装飾は最後に押したカードと同じ目標・同じ速さで動く（押すカードが変わったときも跳ばずにつながる）。
-    // 出っ張っている（これから出っ張る）カード以外の 01〜03 が装飾になって同じように動く
+    // スマホでは 3 枚の装飾を出さず、出っ張っている（これから出っ張る）カード以外の 01・02 が装飾の代わりになって同じように動く
     const lead = active && (active.raised || (active.press || now < active.pressUntil) && active.fromFlat) ? active : null;
     for (const o of objs) {
       // モーダルは開いている間だけ浮く。開いている間はほかの要素を平らにする（閉じると元の高さに戻る）
@@ -723,7 +745,7 @@ void main(){
         } else o.amt += ((modal === o.el ? 1 : 0) - o.amt) * (reduceMotion ? 1 : 0.1);
         continue;
       }
-      o.follow = !cards.includes(o) || (!!lead && lead !== o);
+      o.follow = !cards.includes(o) || (sp && !!lead && lead !== o);
       const src = o.follow ? active : o;
       const pressed = !!src && (src.press || now < src.pressUntil);
       const goal = modal && !closing ? 0 : pressed ? -SINK : src?.raised ? 1 : 0;   // モーダルを閉じ始めたら、沈むのと同時に元の高さへ戻る
@@ -746,7 +768,10 @@ void main(){
         // 01〜03 は装飾の代わりをしている間だけ画像に替わる。文字は 1 マスずつ消え、戻るときは画像が消えきってから 1 マスずつ戻る
         const card = cards.includes(o);
         drawPhoto(o.photo, card && !o.follow ? 0 : Math.min(Math.max(o.amt, 0), 1), gx, gy, now, o.switching, card && o.follow);
-        if (card) o.el.classList.toggle('is-decor', o.follow || o.photo.f > 0);
+        if (card) {
+          o.el.classList.toggle('is-decor', o.follow || o.photo.f > 0);
+          o.el.classList.toggle('is-live', !!o.el.dataset.workHref && o.follow && o.photo.t > 0.97);
+        } else o.el.classList.toggle('is-live', o.photo.t > 0.97);
       }
     });
 

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="500" height="600" viewBox="0 0 500 600">
+  <!-- 作例がまだない装飾カードに出す「COMING SOON」。カードと同じ 2.5×3 マスの比率（1 マス = 200） -->
+  <rect width="500" height="600" fill="#e6e4dd"/>
+  <g fill="#1c1c1c" font-family="Helvetica Neue, Neue Haas Grotesk Text, Arial, sans-serif">
+    <text x="70" y="400" font-size="92" letter-spacing="-2">COMING</text>
+    <text x="70" y="490" font-size="92" letter-spacing="-2">SOON</text>
+  </g>
+</svg>
