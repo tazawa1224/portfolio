@@ -158,6 +158,17 @@ function drawEl(ctx, root) {
     if (cs.visibility === 'hidden' || !n.getClientRects().length) continue;
     const b = n.getBoundingClientRect();
     if (n instanceof HTMLCanvasElement) { if (n.width) ctx.drawImage(n, b.left, b.top, b.width, b.height); continue; }
+    // 画像（作例のサムネイル）：object-fit: cover と object-position のとおりに切り抜いて描く
+    if (n instanceof HTMLImageElement) {
+      if (n.complete && n.naturalWidth) {
+        const k = Math.max(b.width / n.naturalWidth, b.height / n.naturalHeight), dw = n.naturalWidth * k, dh = n.naturalHeight * k;
+        const [px = 50, py = 50] = cs.objectPosition.split(' ').map(v => parseFloat(v));
+        ctx.save(); ctx.beginPath(); ctx.rect(b.left, b.top, b.width, b.height); ctx.clip();
+        ctx.drawImage(n, b.left + (b.width - dw) * px / 100, b.top + (b.height - dh) * py / 100, dw, dh);
+        ctx.restore();
+      }
+      continue;
+    }
     if (cs.backgroundColor !== 'rgba(0, 0, 0, 0)' && cs.backgroundColor !== 'transparent') { ctx.fillStyle = cs.backgroundColor; ctx.fillRect(b.left, b.top, b.width, b.height); }
     // 枠は辺ごとに（上だけ・下だけの罫線もそのまま描く）
     const bt = parseFloat(cs.borderTopWidth), br = parseFloat(cs.borderRightWidth), bb = parseFloat(cs.borderBottomWidth), bl = parseFloat(cs.borderLeftWidth);

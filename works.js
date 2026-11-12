@@ -27,14 +27,17 @@ let html = `
   </a>`;
 
 // 作例：横長は 4 行目から 4×3 マスを 3 枚ずつ（間は 2 マス）。縦長は 6×3 マスを左右交互に
+// 公開した作例（href あり）は作例サイトへのリンク（別のタブ）。押している間だけ凹み、離すと開く（data-link）
 list.forEach((w, i) => {
+  const tag = w.href ? 'a' : 'button';
+  const attrs = w.href ? `href="${w.href}" target="_blank" rel="noopener" data-link` : 'type="button"';
   html += `
-  <button class="card card--link" data-card type="button"
+  <${tag} class="card card--link" data-card ${attrs}
           style="${place([(i % 3) * 6, 3 + Math.floor(i / 3) * 4, 4, 3], [i % 2 ? 2 : 0, 5 + i * 4, 6, 3])}">
     <span class="card__no">${String(i + 1).padStart(2, '0')}</span>
     <span class="card__name">${w.title}</span>
-    <span class="card__go">${cat ? w.note : CATS[w.cat]}</span>
-  </button>`;
+    <span class="card__go">${w.href || cat ? w.note : CATS[w.cat]}</span>
+  </${tag}>`;
 });
 
 // いちばん下の行：フッター。行数は作例の数に合わせて増やす（横長は最低でもトップと同じ 10 行）

@@ -10,8 +10,16 @@ if (el) {
     el.querySelector('[data-works-count]').textContent = `${String(list.length).padStart(2, '0')} WORKS`;
     el.querySelector('[data-works-cats]').innerHTML = [[null, 'ALL'], ...Object.entries(CATS)].map(([c, n]) =>
       `<button type="button" data-c="${c ?? ''}"${c === cat ? ' aria-current="true"' : ''}>${n}</button>`).join('');
-    el.querySelector('[data-works-list]').innerHTML = list.map((w, i) => `
-      <li><span>${String(i + 1).padStart(2, '0')}</span><span class="modal__work-name">${w.title}</span><span>${cat ? w.note : CATS[w.cat]}</span></li>`).join('');
+    // 公開した作例（href あり）はサムネイル付きのリンクにして、作例サイトを別のタブで開く。まだのものはグレーの地に「COMING SOON」
+    el.querySelector('[data-works-list]').innerHTML = list.map((w, i) => {
+      const thumb = w.thumb
+        ? `<span class="modal__work-thumb"><img src="${w.thumb}" alt="" loading="lazy" style="object-position:${w.focus ?? '50% 50%'}"></span>`
+        : '<span class="modal__work-thumb modal__work-thumb--soon" aria-hidden="true"><span>COMING</span><span>SOON</span></span>';
+      const inner = `${thumb}<span class="modal__work-meta"><span>${String(i + 1).padStart(2, '0')}</span><span class="modal__work-name">${w.title}</span><span>${w.href ? w.note : cat ? w.note : CATS[w.cat]}</span></span>`;
+      return w.href
+        ? `\n      <li><a class="modal__work" href="${w.href}" target="_blank" rel="noopener" aria-label="${w.title}（作例のサイトを開く）">${inner}</a></li>`
+        : `\n      <li><div class="modal__work">${inner}</div></li>`;
+    }).join('');
   };
   el.addEventListener('modal-open', e => {
     const q = new URL(e.detail.from.href, location.href).searchParams.get('c');
