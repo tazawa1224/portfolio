@@ -260,6 +260,92 @@ body.is-modal-open .card:not(.card--modal) { visibility: hidden; }
   .modal__title { font-size: calc(var(--cell) * 0.55); }   /* 「APPLICATION」が CLOSE × と並んで 1 行に収まる大きさ */
 }
 .modal__no, .modal__close { white-space: nowrap; }
+/* プロフィールのモーダル：項目（ABOUT・STRENGTH・CAREER・SKILLS・CONTACT）を縦に積む。
+   横長の画面は左に見出し、右に中身（読みやすい幅まで）。項目の間は方眼と同じ太さの線。収まらない分は中身だけスクロールする */
+.card--modal { min-height: 0; }
+.modal__body--profile {
+  flex: 1;
+  min-height: 0;
+  display: block;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+.modal__body--profile .card--text { font-size: max(calc(var(--cell) * 0.2), 12px); line-height: 1.8; }
+.modal__body--profile > .profile__sec {
+  display: grid;
+  grid-template-columns: calc(var(--cell) * 2.5) minmax(0, calc(var(--cell) * 10.5));
+  column-gap: calc(var(--cell) * 0.5);
+  padding: calc(var(--cell) * 0.35) 0 calc(var(--cell) * 0.45);
+  border-top: var(--line) solid var(--ink);
+}
+.profile__sec > h2 { grid-column: 1; grid-row: 1 / span 9; margin: 0.35em 0 0; font-size: max(calc(var(--cell) * 0.2), 11px); }
+.profile__sec > :not(h2) { grid-column: 2; }
+.profile__sec > p:last-child { margin-bottom: 0; }
+.profile__sec > .profile__lead {
+  margin-bottom: 0.5em;
+  font-size: max(calc(var(--cell) * 0.36), 18px);
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+}
+/* スキル：分類ごとに 1 行。技術名は 1 つずつ方眼と同じ太さの線で囲む */
+.profile__skills dl { grid-template-columns: 6.5em 1fr; gap: 0.7em 1em; align-items: start; }
+.profile__skills dt { padding-top: 0.45em; }
+.profile__skills dd { display: flex; flex-wrap: wrap; gap: 0.45em; }
+.profile__skills dd > span {
+  padding: 0.3em 0.65em;
+  border: var(--line) solid var(--ink);
+  line-height: 1.3;
+  white-space: nowrap;
+}
+/* 経歴：期間・案件・役割と、担当した工程（要件定義〜保守・運用の 7 マス。担当したマスを墨で塗る） */
+.career__head, .career li {
+  display: grid;
+  grid-template-columns: 7.6em minmax(0, 1fr) 6em auto;
+  align-items: center;
+  column-gap: 1.2em;
+}
+.career__head { padding-bottom: 0.45em; line-height: 1.2; }
+.career__head > span:not(.phase), .career__head .phase > i { font: 400 max(10px, 0.72em) / 1.2 var(--mono); letter-spacing: 0.04em; }
+.career { margin: 0; padding: 0; list-style: none; }
+.career li {
+  padding: 0.6em 0;
+  border-top: var(--line) solid var(--ink);
+}
+.career__when, .career__role { font: 400 0.85em / 1.3 var(--mono); letter-spacing: 0.02em; white-space: nowrap; }
+.career__name { font-size: 1.08em; line-height: 1.4; }
+.career__ai {
+  display: inline-block;
+  margin-left: 0.4em;
+  padding: 0.15em 0.3em;
+  border: var(--line) solid var(--ink);
+  font: 400 0.62em / 1 var(--mono);
+  letter-spacing: 0.06em;
+  vertical-align: 0.2em;
+}
+/* 工程のマス：地の方眼と同じ線の太さ。見出し（要件〜保守）は横書きで各マスの真上に置く */
+.phase { display: grid; grid-template-columns: repeat(7, 2.1em); }
+.phase > i { display: block; justify-self: center; width: 1.15em; height: 1.15em; border: var(--line) solid var(--ink); }
+.phase > i.on { background: var(--ink); }
+.career__head .phase > i { width: auto; height: auto; border: 0; font-style: normal; }
+@media (max-aspect-ratio: 1/1), (max-width: 760px) {
+  .modal__body--profile .card--text { font-size: max(calc(var(--cell) * 0.3), 12px); }
+  /* スマホは見出しを上に、中身をその下に */
+  .modal__body--profile > .profile__sec { grid-template-columns: minmax(0, 1fr); }
+  .profile__sec > h2 { grid-row: auto; margin: 0 0 0.8em; }
+  .profile__sec > :not(h2) { grid-column: 1; }
+  .profile__sec > .profile__lead { font-size: max(calc(var(--cell) * 0.42), 16px); }
+  .profile__skills dl { grid-template-columns: 1fr; gap: 0.35em; }
+  .profile__skills dt { padding-top: 0.5em; }
+  /* スマホの経歴は 2 段：上に期間と工程のマス、下に案件と役割 */
+  .career__head, .career li { grid-template-columns: minmax(0, 1fr) auto; row-gap: 0.3em; }
+  .career__head > span:not(.phase) { display: none; }
+  .career__head > .phase { grid-column: 2; }
+  .career li > .career__when { grid-row: 1; grid-column: 1; }
+  .career li > .phase { grid-row: 1; grid-column: 2; }
+  .career li > .career__name { grid-row: 2; grid-column: 1 / -1; }
+  .career li > .career__role { grid-row: 3; grid-column: 1; }
+  .phase { grid-template-columns: repeat(7, 1.75em); }
+}
 /* 作例一覧のモーダル：カテゴリの切り替え（いま見ているカテゴリは地と文字の色を入れ替える）と作例の枠 */
 .modal__cats { display: flex; flex-wrap: wrap; gap: calc(var(--cell) * 0.1) calc(var(--cell) * 0.3); }
 .modal__cats button {

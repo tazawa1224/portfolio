@@ -124,6 +124,9 @@ function drawEl(ctx, root) {
     ctx.fillRect(x0 - L / 2, y0 - L / 2, w + L, L); ctx.fillRect(x0 - L / 2, y0 + h - L / 2, w + L, L);
     ctx.fillRect(x0 - L / 2, y0 - L / 2, L, h + L); ctx.fillRect(x0 + w - L / 2, y0 - L / 2, L, h + L);
   }
+  // 中身はカードの内側に限って描く（スクロールして見えていない部分を外へはみ出させない）
+  ctx.save();
+  ctx.beginPath(); ctx.rect(x0, y0, w, h); ctx.clip();
   const range = document.createRange();
   const walk = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT);
   let font = '';
@@ -156,9 +159,14 @@ function drawEl(ctx, root) {
     const b = n.getBoundingClientRect();
     if (n instanceof HTMLCanvasElement) { if (n.width) ctx.drawImage(n, b.left, b.top, b.width, b.height); continue; }
     if (cs.backgroundColor !== 'rgba(0, 0, 0, 0)' && cs.backgroundColor !== 'transparent') { ctx.fillStyle = cs.backgroundColor; ctx.fillRect(b.left, b.top, b.width, b.height); }
-    const bw = parseFloat(cs.borderTopWidth);
-    if (bw > 0) { ctx.strokeStyle = cs.borderTopColor; ctx.lineWidth = bw; ctx.strokeRect(b.left + bw / 2, b.top + bw / 2, b.width - bw, b.height - bw); }
+    // 枠は辺ごとに（上だけ・下だけの罫線もそのまま描く）
+    const bt = parseFloat(cs.borderTopWidth), br = parseFloat(cs.borderRightWidth), bb = parseFloat(cs.borderBottomWidth), bl = parseFloat(cs.borderLeftWidth);
+    if (bt > 0) { ctx.fillStyle = cs.borderTopColor; ctx.fillRect(b.left, b.top, b.width, bt); }
+    if (bb > 0) { ctx.fillStyle = cs.borderBottomColor; ctx.fillRect(b.left, b.bottom - bb, b.width, bb); }
+    if (bl > 0) { ctx.fillStyle = cs.borderLeftColor; ctx.fillRect(b.left, b.top, bl, b.height); }
+    if (br > 0) { ctx.fillStyle = cs.borderRightColor; ctx.fillRect(b.right - br, b.top, br, b.height); }
   }
+  ctx.restore();
 }
 
 function fxDraw(cv, els) {

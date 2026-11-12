@@ -92,7 +92,7 @@
     <ul class="modal__works" data-works-list></ul>
   </section>
 
-  <!-- プロフィールのモーダル（02 から開く）。中身は profile.html と同じ。決まったら両方を書き換える -->
+  <!-- プロフィールのモーダル（02 から開く）。profile.html は自己紹介とスキルだけ同じ内容 -->
   <section class="card card--modal" data-card data-modal id="profile" role="dialog" aria-modal="true" aria-labelledby="profile-title" inert
            style="--c:0; --r:0; --w:18; --h:10;  --mc:0; --mr:0; --mw:8; --mh:calc(13 + var(--xr, 0));">
     <header class="modal__head">
@@ -100,25 +100,44 @@
       <h2 class="modal__title" id="profile-title">PROFILE</h2>
       <button class="modal__close" type="button" data-close>CLOSE ×</button>
     </header>
-    <div class="modal__body">
-      <section class="card--text">
+    <!-- 中身は技術経歴書から。ABOUT・STRENGTH・CAREER・SKILLS を縦に積む（左に見出し、右に中身。スマホは見出しを上に）。経歴は担当した工程を方眼のマスで塗る。収まらない分は中身だけスクロール -->
+    <div class="modal__body modal__body--profile">
+      <section class="card--text profile__sec">
         <h2>ABOUT</h2>
-        <p>田澤（TAZAWA）。Web サイトとアプリケーションのデザインから、実装までを一人で手がけています。</p>
-        <p>方眼と立体の動きのように、画面の中で「触れると応える」ことを大事にしています。</p>
+        <p class="profile__lead">Web サイトと業務システムを、設計とデザインから実装まで。</p>
+        <p>HTML / CSS / JavaScript と PHP・Laravel を軸に、EC サイトや社内ポータル、地図・気象データを扱うシステムを開発。いまは React と AI を使った開発で、要件定義からデプロイまで担当しています。</p>
       </section>
-      <section class="card--text">
+      <section class="card--text profile__sec">
+        <h2>STRENGTH</h2>
+        <p>前職はリフォーム会社の営業兼現場管理。工程表づくりから職人の手配、現場の進行まで一人で回してきました。タスクを細かく分けて進み具合を見えるようにし、納期と品質を守ります。</p>
+      </section>
+      <section class="card--text profile__sec">
+        <h2>CAREER</h2>
+        <div class="career__head" aria-hidden="true"><span>期間</span><span>案件</span><span>役割</span><span class="phase"><i>要件</i><i>基本</i><i>詳細</i><i>実装</i><i>結合</i><i>総合</i><i>保守</i></span></div>
+        <ol class="career">
+          <li><span class="career__when">2026.8–</span><span class="career__name">SES 提案管理システム <span class="career__ai" title="AI 駆動の開発">AI</span></span><span class="career__role">PG・デザイン</span><span class="phase" role="img" aria-label="担当工程：要件定義、基本設計、詳細設計、実装・単体テスト、結合テスト、総合テスト"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span></li>
+          <li><span class="career__when">2026.7–2026.8</span><span class="career__name">コーポレートサイト改修 <span class="career__ai" title="AI 駆動の開発">AI</span></span><span class="career__role">PG</span><span class="phase" role="img" aria-label="担当工程：要件定義、基本設計、詳細設計、実装・単体テスト、結合テスト、総合テスト、保守・運用"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span></li>
+          <li><span class="career__when">2026.6–2026.8</span><span class="career__name">コーポレートサイト リニューアル <span class="career__ai" title="AI 駆動の開発">AI</span></span><span class="career__role">PG・デザイン</span><span class="phase" role="img" aria-label="担当工程：基本設計、詳細設計、実装・単体テスト、結合テスト、総合テスト"><i></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span></li>
+          <li><span class="career__when">2026.6–2026.7</span><span class="career__name">工程表作成アプリケーション <span class="career__ai" title="AI 駆動の開発">AI</span></span><span class="career__role">PG</span><span class="phase" role="img" aria-label="担当工程：基本設計、詳細設計、実装・単体テスト、結合テスト"><i></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span></li>
+          <li><span class="career__when">2026.4–2026.6</span><span class="career__name">請求書管理アプリケーション <span class="career__ai" title="AI 駆動の開発">AI</span></span><span class="career__role">PG</span><span class="phase" role="img" aria-label="担当工程：要件定義、基本設計、詳細設計、実装・単体テスト、結合テスト"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span></li>
+          <li><span class="career__when">2026.2–2026.5</span><span class="career__name">鉄道 計画運休判断支援システム</span><span class="career__role">PG</span><span class="phase" role="img" aria-label="担当工程：詳細設計、実装・単体テスト、結合テスト"><i></i><i></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span></li>
+          <li><span class="career__when">2025.8–2026.5</span><span class="career__name">TV 放送向け気象コンテンツ生成</span><span class="career__role">PG</span><span class="phase" role="img" aria-label="担当工程：詳細設計、実装・単体テスト、結合テスト"><i></i><i></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span></li>
+          <li><span class="career__when">2023.11–2025.7</span><span class="career__name">SNS 連携の EC サイト</span><span class="career__role">PG</span><span class="phase" role="img" aria-label="担当工程：詳細設計、実装・単体テスト、結合テスト"><i></i><i></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span></li>
+          <li><span class="career__when">2023.1–2023.10</span><span class="career__name">社内申請ポータルサイト</span><span class="career__role">PG</span><span class="phase" role="img" aria-label="担当工程：実装・単体テスト、結合テスト、総合テスト"><i></i><i></i><i></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span></li>
+          <li><span class="career__when">2022.7–2022.12</span><span class="career__name">Web サイト再構築・保守</span><span class="career__role">PG</span><span class="phase" role="img" aria-label="担当工程：実装・単体テスト、結合テスト、保守・運用"><i></i><i></i><i></i><i class="on"></i><i class="on"></i><i></i><i class="on"></i></span></li>
+          <li><span class="career__when">2021.12–2022.6</span><span class="career__name">製品デザイン（ロゴ・3D モデル）</span><span class="career__role">デザイン</span><span class="phase" role="img" aria-label="担当工程：要件定義、基本設計、詳細設計、実装・単体テスト"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i></span></li>
+        </ol>
+      </section>
+      <section class="card--text profile__sec profile__skills">
         <h2>SKILLS</h2>
         <dl>
-          <dt>DESIGN</dt><dd>Figma / UI / グラフィック</dd>
-          <dt>CODE</dt><dd>HTML / CSS / JavaScript / WebGL</dd>
-          <dt>3D</dt><dd>Blender / three.js</dd>
-        </dl>
-      </section>
-      <section class="card--text">
-        <h2>CONTACT</h2>
-        <dl>
-          <dt>MAIL</dt><dd>COMING SOON</dd>
-          <dt>SNS</dt><dd>COMING SOON</dd>
+          <dt>FRONT</dt><dd><span>HTML</span><span>CSS</span><span>JavaScript</span><span>React</span><span>Vue.js</span><span>jQuery</span></dd>
+          <dt>BACK</dt><dd><span>PHP</span><span>Laravel</span><span>WordPress</span><span>MySQL</span></dd>
+          <dt>MAP</dt><dd><span>Leaflet</span><span>MapLibre</span></dd>
+          <dt>DESIGN</dt><dd><span>Figma</span><span>Illustrator</span><span>Photoshop</span></dd>
+          <dt>3D</dt><dd><span>three.js</span><span>WebGL</span><span>Blender</span><span>Rhinoceros</span><span>AutoCAD</span></dd>
+          <dt>AI</dt><dd><span>Claude Code</span><span>Codex</span><span>ChatGPT</span></dd>
+          <dt>TOOL</dt><dd><span>Git</span><span>Docker</span><span>GCP</span><span>Backlog</span></dd>
         </dl>
       </section>
     </div>
